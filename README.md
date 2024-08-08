@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/aac55907-861a-41ef-bbce-a1de9451a7dd)# 个人博客
+# 个人博客
 
 基于vue3开发的个人博客网站  
 
