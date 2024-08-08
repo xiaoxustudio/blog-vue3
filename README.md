@@ -1,8 +1,14 @@
-# 个人博客
+![image](https://github.com/user-attachments/assets/aac55907-861a-41ef-bbce-a1de9451a7dd)# 个人博客
 
 基于vue3开发的个人博客网站  
 
 技术栈：`vue3（全家桶）、elementUI-plus、tilewindcss、axios、wangeditor/editor（富文本编辑器）`
+
+![屏幕截图 2024-08-08 222736](https://github.com/user-attachments/assets/d907cd4f-3503-406f-ad66-ecd103d2fef6)
+![屏幕截图 2024-08-08 222741](https://github.com/user-attachments/assets/c443630a-e7d3-418f-ac57-e7f689f4c163)
+![屏幕截图 2024-08-08 222747](https://github.com/user-attachments/assets/90443201-1118-4e68-8778-f312e839237a)
+![屏幕截图 2024-08-08 222755](https://github.com/user-attachments/assets/0ecf12fc-7402-448f-ae5a-865225ae8031)
+
 
 ## 使用
 
