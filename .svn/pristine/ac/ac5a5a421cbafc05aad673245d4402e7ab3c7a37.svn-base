@@ -1,0 +1,39 @@
+<template>
+    <div
+        class="my-4 cursor-pointer rounded-md bg-white px-4 py-2 shadow-sm transition-shadow duration-200 hover:shadow"
+    >
+        <div class="title py-2 text-2xl font-bold text-slate-700">{{ _d.data.article_title }}</div>
+        <div
+            class="content line-clamp-3 h-16 w-2/5 overflow-hidden py-2 text-sm text-gray-400"
+            v-html="_d.data.article_content"
+        ></div>
+        <div class="bottom my-2 flex gap-4 py-2 text-sm">
+            <div>
+                <el-icon color="#000"><User /></el-icon>
+                <span class="px-1 text-gray-400">{{ _d.data['$user'].nickname }}</span>
+            </div>
+            <div>
+                <el-icon color="#000"><Collection /></el-icon>
+                <span class="px-1 text-gray-400">{{ _d.data['$class'].class_name }}</span>
+            </div>
+            <div>
+                <el-icon color="#000"><View /></el-icon>
+                <span class="px-1 text-gray-400">{{ _d.data.article_see }}</span>
+            </div>
+            <div>
+                <el-icon color="#000"><Timer /></el-icon>
+                <span class="px-1 text-gray-400">{{ _d.data.article_time }}</span>
+            </div>
+        </div>
+    </div>
+</template>
+<script lang="ts" setup>
+import { ArticleData } from '@/utils';
+interface Data {
+    data: ArticleData;
+}
+const _d = withDefaults(defineProps<Data>(), {});
+defineOptions({
+    name: 'ArticleCard',
+});
+</script>

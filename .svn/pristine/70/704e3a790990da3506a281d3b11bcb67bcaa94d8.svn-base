@@ -1,0 +1,115 @@
+import axios, { AxiosResponse } from 'axios';
+
+const base_url = '/api/api.php';
+axios.defaults.data = 'application/json';
+// 网络请求
+interface APIType {
+    login: string; // 登录
+    register: string; // 注册
+    class: string; // 分类列表
+    tags: string; // 标签
+    s_article: string; // 发布文章
+    list_article: string; // 文章列表
+    get_article: string; // 文章列表
+    get_class: string; // 文章列表
+    get_user: string; // 获取用户信息
+    a_comment: string; // 提交评论
+    a_comment_like: string; // 点赞
+    d_comment: string; // 删除评论
+    s_search: string; // 搜索
+    get_myarticle: string; // 我的文章
+    get_mycommentlist: string; // 我的评论
+    u_user: string; // 修改用户数据
+    u_article: string; // 修改文章数据
+    // admin 界面
+    admin_getUserList: string; // 获取用户列表
+    admin_getArticleList: string; // 获取文章列表
+    admin_getCommentList: string; // 获取评论列表
+    admin_updatesUser: string; // 更新用户
+    admin_updatesArticle: string; // 更新文章
+    admin_updatesComment: string; // 更新文章
+    admin_deleteUser: string; // 删除用户
+    admin_deleteArticle: string; // 删除文章
+    admin_deleteComment: string; // 删除评论
+    // 聊天室
+    getChatList: string; // 获取聊天数据
+    addMessage: string; // 发送聊天数据
+    clearChat: string; // 清空聊天室
+    chatSocket: string; // 聊天室Socket
+}
+export const API_Type: APIType = {
+    login: 'loginUser',
+    register: 'addUser',
+    class: 'getClassList',
+    tags: 'getTags',
+    s_article: 'submitArticle',
+    list_article: 'getArticleList',
+    get_article: 'getArticle',
+    get_class: 'getClass',
+    get_user: 'getUser',
+    a_comment: 'addComment',
+    a_comment_like: 'addCommentLike',
+    d_comment: 'deleteComment',
+    s_search: 'submitSearch',
+    get_myarticle: 'getMyArticle',
+    get_mycommentlist: 'getMyCommentList',
+    u_user: 'updateUser',
+    u_article: 'updateArticle',
+    admin_getUserList: 'getUserList',
+    admin_getArticleList: 'getArticleList',
+    admin_getCommentList: 'getCommentList',
+    admin_deleteUser: 'deleteUser',
+    admin_updatesUser: 'updatesUser',
+    admin_updatesArticle: 'updatesArticle',
+    admin_updatesComment: 'updatesComment',
+    admin_deleteArticle: 'deleteArticle',
+    admin_deleteComment: 'deleteComment',
+    getChatList: 'getChatList',
+    addMessage: 'addMessage',
+    clearChat: 'clearChat',
+    chatSocket: 'chatSocket',
+};
+export interface RespData {
+    /**
+     * @description: 错误消息
+     */
+    msg: string;
+    /**
+     * @description: 状态码：0失败，1成功
+     */
+    status: number;
+    /**
+     * @description: 数据
+     */
+    data: { [key: string]: any };
+}
+/**
+ * @description: get请求
+ * @param {string} prefix 前缀
+ * @param {object} data 数据
+ * @return {*}
+ */
+export function getData(
+    prefix: string,
+    data: { [key: string]: any },
+): Promise<AxiosResponse<RespData>> {
+    return axios.get(base_url + prefix, {
+        params: data,
+    });
+}
+/**
+ * @description: post请求
+ * @param {string} prefix 前缀
+ * @param {object} data 数据
+ * @return {*}
+ */
+export function postData(
+    prefix: string,
+    data: { [key: string]: any },
+): Promise<AxiosResponse<RespData>> {
+    let _fd = new FormData();
+    for (let i in data) {
+        if (i) _fd.append(i, data[i]);
+    }
+    return axios.post(base_url + prefix, _fd);
+}

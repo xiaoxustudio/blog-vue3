@@ -1,0 +1,56 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-25 23:00:23
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <el-scrollbar class="w-full" height="95vh">
+        <el-skeleton :rows="5" :loading="is_ready" animated>
+            <template #default>
+                <el-table empty-text="暂无文章" :data="list" style="width: 100%; height: 100%">
+                    <el-table-column prop="id" label="id" />
+                    <el-table-column prop="article_id" label="文章ID" />
+                    <el-table-column prop="article_class" label="文章分类" align="center" />
+                    <el-table-column prop="article_title" label="文章标题" />
+                    <el-table-column label="文章内容">
+                        <template #default="scope">
+                            <span class="w-full overflow-hidden text-ellipsis text-nowrap">
+                                {{ scope.row.article_content }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="article_see" label="文章阅览量" align="center" />
+                    <el-table-column prop="article_time" label="文章发布时间" />
+                    <el-table-column prop="author_id" label="作者用户ID" />
+                    <el-table-column prop="article_tags" label="文章标签" />
+                </el-table>
+            </template>
+        </el-skeleton>
+    </el-scrollbar>
+</template>
+<script setup lang="ts">
+import emitter from '@/EventBus';
+import { API_Type, postData, ArticleData } from '@/utils';
+const list = ref<ArticleData[]>([]);
+const is_ready = ref(true);
+
+onMounted(() => {
+    is_ready.value = true;
+    emitter.emit('handleAdmin');
+    postData(`?type=${API_Type.admin_getArticleList}`, {}).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            const _list = _data.data as ArticleData[];
+            list.value = Array.isArray(_list) ? _list : [];
+            is_ready.value = false;
+        } else {
+            ElMessage.error({
+                message: _data.msg,
+            });
+        }
+    });
+});
+</script>
+<style scope lang="scss"></style>

@@ -1,0 +1,21 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-19 22:10:10
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+import { createApp } from 'vue';
+import ElementPlus from 'element-plus';
+import 'element-plus/dist/index.css';
+import App from './App.vue';
+import router from '@/router';
+import '@/styles/taildwind.css';
+import * as ElementPlusIconsVue from '@element-plus/icons-vue';
+const app = createApp(App);
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component);
+}
+app.use(ElementPlus);
+app.use(router);
+app.mount('#app');

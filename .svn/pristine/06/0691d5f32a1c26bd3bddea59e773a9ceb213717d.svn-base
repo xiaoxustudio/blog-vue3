@@ -1,0 +1,133 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-27 23:03:03
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="w-full bg-white p-5">
+        <div class="w-full">
+            <span class="text-sm text-gray-500">轮询间隔：</span>
+            <el-input-number
+                v-model="useChatInterval.interval"
+                size="small"
+                :min="500"
+                :max="2000"
+                :step="5"
+                @change="handleChatInterval"
+            />
+        </div>
+        <el-row :gutter="20">
+            <el-col :span="24">
+                <el-scrollbar class="w-full" height="85vh">
+                    <el-skeleton :loading="is_ready" animated>
+                        <template #default>
+                            <ChatCard
+                                v-for="(item, index) in list"
+                                :list="item"
+                                :key="index"
+                            ></ChatCard>
+                        </template>
+                    </el-skeleton>
+                </el-scrollbar>
+            </el-col>
+            <el-col :span="20"
+                ><el-input v-model="content" type="text" auto-complete="'off'"></el-input
+            ></el-col>
+            <el-col :span="useInfo.$state.group == '0' ? 2 : 4">
+                <el-button class="w-full" @click="sendMessage">发送</el-button>
+            </el-col>
+            <el-col :span="useInfo.$state.group == '0' ? 2 : 0">
+                <el-popconfirm
+                    title="是否清空聊天室?"
+                    confirm-button-text="清空"
+                    cancel-button-text="取消"
+                    @confirm="handleClearChat"
+                >
+                    <template #reference>
+                        <div>
+                            <el-button type="primary" v-if="useInfo.$state.group == '0'"
+                                >清空聊天室</el-button
+                            >
+                        </div>
+                    </template>
+                </el-popconfirm>
+            </el-col>
+        </el-row>
+    </div>
+</template>
+<script setup lang="ts">
+import { API_Type, ChatData, postData } from '@/utils';
+import { useInfoStore, useChatIntervalStore } from '../../store/index';
+import router from '@/router';
+const useInfo = useInfoStore();
+const useChatInterval = useChatIntervalStore();
+let intervalID: NodeJS.Timeout;
+const list = ref<ChatData[]>();
+const content = ref('');
+const is_ready = ref(true);
+const updateList = async (show_skeleton = true) => {
+    if (show_skeleton) is_ready.value = true;
+    await postData(`?type=${API_Type.getChatList}`, {}).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            list.value = _data.data as ChatData[];
+            if (show_skeleton) is_ready.value = false;
+        } else {
+            ElMessage.error({
+                message: _data.msg,
+            });
+        }
+    });
+};
+const sendMessage = () => {
+    postData(`?type=${API_Type.addMessage}`, {
+        token: useInfo.token,
+        username: useInfo.username,
+        msg: content.value,
+    }).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            content.value = '';
+            ElMessage.success({ message: '发送成功！' });
+            updateList();
+        } else {
+            ElMessage.error({
+                message: _data.msg,
+            });
+        }
+    });
+};
+const handleClearChat = async () => {
+    await postData(`?type=${API_Type.clearChat}`, {
+        token: useInfo.token,
+        username: useInfo.username,
+    }).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            ElMessage.success({ message: '清空成功！' });
+            updateList();
+        } else {
+            ElMessage.error({
+                message: _data.msg,
+            });
+        }
+    });
+};
+const handleChatInterval = () => {
+    clearInterval(intervalID);
+    intervalID = setInterval(() => updateList(false), useChatInterval.interval);
+};
+onMounted(() => {
+    if (!useInfo.is_login) {
+        router.replace({ name: 'login' });
+    }
+    intervalID = setInterval(() => updateList(false), useChatInterval.interval);
+    updateList();
+});
+onUnmounted(() => {
+    clearInterval(intervalID);
+});
+</script>
+<style scope lang="scss"></style>

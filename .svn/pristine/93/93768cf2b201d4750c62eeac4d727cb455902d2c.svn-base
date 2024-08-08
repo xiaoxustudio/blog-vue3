@@ -1,0 +1,53 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-19 22:59:46
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+// 工具函数库
+
+/**
+ * @description: 随机颜色
+ * @return {*}
+ */
+export function getRandomColor(): string {
+    let letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+/**
+ * @description: 随机暖色色系
+ * @return {*}
+ */
+export function getRandomWarmColor(): string {
+    let letters = '0123456789ABCDEF';
+    let color = '#';
+    // 确保红色值较高，以产生暖色调
+    color += letters[Math.floor(Math.random() * 4) + 8]; // 8, 9, A, B
+    // 绿色值较低，但不要过低，以保持颜色亮度
+    color += letters[Math.floor(Math.random() * 4)]; // 0, 1, 2, 3
+    // 黄色值较高，以增加暖色调
+    color += letters[Math.floor(Math.random() * 4) + 8]; // 8, 9, A, B
+
+    return color;
+}
+/**
+ * @description: 随机冷色色系
+ * @return {*}
+ */
+export function getRandomCoolColor(): string {
+    let letters = '0123456789ABCDEF';
+    let color = '#';
+    // 确保蓝色值较高，以产生冷色调
+    color += letters[Math.floor(Math.random() * 4) + 8]; // 8, 9, A, B
+    // 绿色值适中，以保持颜色亮度
+    color += letters[Math.floor(Math.random() * 8)]; // 0, 1, 2, 3, 4, 5, 6, 7
+    // 红色值较低，以增加冷色调
+    color += letters[Math.floor(Math.random() * 4)]; // 0, 1, 2, 3
+
+    return color;
+}

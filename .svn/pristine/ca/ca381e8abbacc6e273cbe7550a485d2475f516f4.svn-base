@@ -1,0 +1,90 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-24 21:27:32
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="flex h-full w-full items-center justify-center">
+        <div class="rounded-md bg-white p-5">
+            <h1 class="py-5 text-3xl font-bold">登录</h1>
+            <el-form
+                ref="ruleFormRef"
+                :rules="rules"
+                :model="ruleForm"
+                label-width="auto"
+                style="min-width: 400px"
+            >
+                <el-form-item label="用户名" prop="username">
+                    <el-input v-model="ruleForm.username" type="text" clearable />
+                </el-form-item>
+                <el-form-item label="密码" prop="password">
+                    <el-input v-model="ruleForm.password" type="password" clearable />
+                </el-form-item>
+                <el-form-item>
+                    <div class="flex w-full items-center justify-center">
+                        <el-button type="primary" @click="onSubmit(ruleFormRef)">登录</el-button>
+                        <el-button @click="$router.push('register')">注册</el-button>
+                    </div>
+                </el-form-item>
+            </el-form>
+        </div>
+    </div>
+</template>
+<script lang="ts" setup>
+import { API_Type, postData } from '@/utils';
+import { ElMessage, FormInstance, FormRules } from 'element-plus';
+import { reactive } from 'vue';
+import router from '@/router';
+import { useInfoStore } from '@/store';
+import emitter from '@/EventBus';
+const ruleFormRef = ref<FormInstance>();
+interface RuleForm {
+    username: string;
+    password: string;
+}
+const ruleForm = reactive<RuleForm>({
+    username: '',
+    password: '',
+});
+const rules = reactive<FormRules<typeof ruleForm>>({
+    username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+    password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+});
+
+const useInfo = useInfoStore();
+
+const onSubmit = async (formEl: FormInstance | undefined) => {
+    if (!formEl) return;
+    await formEl.validate((valid) => {
+        if (valid) {
+            const _duplicate = { ...ruleForm };
+            postData(`?type=${API_Type.login}`, _duplicate).then((_res) => {
+                const _data = _res.data;
+                if (_data.status) {
+                    console.log(_data.data);
+                    useInfo.$patch({
+                        is_login: true,
+                        ..._data.data,
+                    });
+                    ElMessage.success({
+                        message: '登录成功！',
+                    });
+                    emitter.emit('HandleUpdateMenu');
+                    setTimeout(() => router.replace({ name: 'home' }), 500);
+                } else {
+                    ElMessage.error({
+                        message: _data.msg,
+                    });
+                }
+            });
+        } else {
+            ElMessage.error({
+                message: '信息填写错误，请重试！',
+            });
+        }
+        formEl.resetFields();
+    });
+};
+</script>

@@ -1,0 +1,87 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-21 15:08:40
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="w-full">
+        <div class="m-2 flex w-full items-center justify-end">
+            <div>
+                <span>文章分类：</span>
+                <el-select
+                    @change="Handlechange"
+                    v-model="class_val"
+                    placeholder="请选择文章分类"
+                    style="width: 240px"
+                >
+                    <el-option
+                        v-for="item in classList"
+                        :key="item.class_id"
+                        :label="item.class_name"
+                        :value="item.class_id"
+                    />
+                </el-select>
+            </div>
+            <el-button type="primary" @click="$router.push('edit')">发布文章</el-button>
+        </div>
+        <el-scrollbar class="w-full overflow-hidden p-2" height="98vh">
+            <!-- 卡片 -->
+            <ArticleCard
+                :key="item.id + item.article_id"
+                v-for="item in list"
+                :data="item"
+            ></ArticleCard>
+        </el-scrollbar>
+    </div>
+</template>
+<script lang="ts" setup>
+import ArticleCard from '@/components/ArticleCard.vue';
+import { useArticleSelectStore } from '@/store';
+import { postData, API_Type, ArticleData, ClassData } from '@/utils';
+const useArticleSelect = useArticleSelectStore();
+const class_val = ref(useArticleSelect.select || '1');
+const classList = ref<ClassData[]>([]);
+
+let list = ref<ArticleData[]>([]);
+const updateArticle = async () => {
+    await postData(`?type=${API_Type.list_article}`, {
+        group: class_val.value === '-1' ? '' : class_val.value,
+    }).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            const _list = _data.data as any[];
+            list.value = Array.isArray(_list) ? _list : [];
+        } else {
+            ElMessage.error({
+                message: _data.msg,
+            });
+        }
+    });
+};
+const Handlechange = (e: any) => {
+    useArticleSelect.$patch({
+        select: e,
+    });
+    updateArticle();
+};
+await postData(`?type=${API_Type.class}`, {}).then((data) => {
+    const _data = data.data;
+    if (_data.status) {
+        const _list = _data.data as any[];
+        classList.value = Array.isArray(_list) ? _list : [];
+        classList.value.unshift({
+            id: '-1',
+            class_id: '-1',
+            class_name: '全部',
+            class_desc: '全部',
+        });
+    } else {
+        ElMessage.error({
+            message: '数据错误！',
+        });
+    }
+});
+updateArticle();
+</script>

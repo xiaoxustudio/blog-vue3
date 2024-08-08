@@ -1,0 +1,55 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-22 21:23:18
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+const routes: RouteRecordRaw[] = [
+    {
+        path: '/',
+        redirect: 'home',
+    },
+    {
+        name: 'home',
+        path: '/home',
+        component: () => import('@/pages/Home/Main.vue'),
+    },
+    {
+        name: 'class',
+        path: '/class',
+        component: () => import('@/pages/Class/Main.vue'),
+    },
+    {
+        name: 'article',
+        path: '/article',
+        component: () => import('@/pages/Article/Main.vue'),
+    },
+    {
+        name: 'article_info',
+        path: '/article/:article_class/:article_id',
+        component: () => import('@/pages/ArticleInfo/Main.vue'),
+    },
+    {
+        name: 'edit',
+        path: '/edit',
+        component: () => import('@/components/Edit.vue'),
+    },
+    {
+        name: 'login',
+        path: '/login',
+        component: () => import('@/pages/Login/Main.vue'),
+    },
+    {
+        name: 'register',
+        path: '/register',
+        component: () => import('@/pages/Register/Main.vue'),
+    },
+];
+const router = createRouter({
+    history: createWebHistory(import.meta.env.BASE_URL),
+    routes,
+});
+export default router;

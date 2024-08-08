@@ -1,0 +1,21 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-18 17:49:26
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+
+<template>
+    <Head></Head>
+    <div class="w-full h-full">
+        <RouterView></RouterView>
+    </div>
+    <Footer></Footer>
+</template>
+<script setup lang="ts">
+import { RouterView } from 'vue-router';
+import Footer from '@/components/Footer.vue';
+import Head from '@/components/Head.vue';
+</script>
+<style scoped></style>

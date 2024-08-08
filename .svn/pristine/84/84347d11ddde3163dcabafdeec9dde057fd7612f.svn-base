@@ -1,0 +1,240 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-23 14:48:31
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+// 工具函数库
+
+import axios, { AxiosResponse } from 'axios';
+
+const base_url = '/api/api.php';
+axios.defaults.data = 'application/json';
+
+export const editorConfig = {
+    MENU_CONF: {
+        codeSelectLang: {
+            codeLangs: [
+                { text: 'CSS', value: 'css' },
+                { text: 'HTML', value: 'html' },
+                { text: 'JS', value: 'javascript' },
+                { text: 'TS', value: 'typescript' },
+                { text: 'MKDown', value: 'markdown' },
+            ],
+        },
+    },
+    placeholder: '请输入内容...',
+};
+// 用户数据
+export interface UserData {
+    id: string;
+    user_id: string;
+    nickname: string;
+    username: string;
+    password: string;
+    login_time: string;
+    group: string;
+    token: string;
+}
+// 分类数据
+export interface ClassData {
+    id: string;
+    class_id: string;
+    class_name: string;
+    class_desc: string;
+}
+// 评论数据
+export interface CommentData {
+    comment_id: string;
+    comment_content: string;
+    comment_like: string;
+    comment_author_id: string;
+    comment_article_id: string;
+    comment_time: string;
+    $user?: UserData;
+}
+// 文章数据
+export interface ArticleData {
+    id: string;
+    article_class: string;
+    article_id: string;
+    article_title: string;
+    article_content: string;
+    article_see: string;
+    article_time: string;
+    author_id: string;
+    $user: UserData;
+    $class: ClassData;
+    $comments?: CommentData[];
+}
+
+/**
+ * @description: 随机颜色
+ * @return {*}
+ */
+export function getRandomColor(): string {
+    let letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+/**
+ * @description: 随机暖色色系
+ * @return {*}
+ */
+export function getRandomWarmColor(): string {
+    let letters = '0123456789ABCDEF';
+    let color = '#';
+    // 确保红色值较高，以产生暖色调
+    color += letters[Math.floor(Math.random() * 4) + 8]; // 8, 9, A, B
+    // 绿色值较低，但不要过低，以保持颜色亮度
+    color += letters[Math.floor(Math.random() * 4)]; // 0, 1, 2, 3
+    // 黄色值较高，以增加暖色调
+    color += letters[Math.floor(Math.random() * 4) + 8]; // 8, 9, A, B
+
+    return color;
+}
+/**
+ * @description: 随机冷色色系
+ * @return {*}
+ */
+export function getRandomCoolColor(): string {
+    let letters = '0123456789ABCDEF';
+    let color = '#';
+    // 确保蓝色值较高，以产生冷色调
+    color += letters[Math.floor(Math.random() * 4) + 8]; // 8, 9, A, B
+    // 绿色值适中，以保持颜色亮度
+    color += letters[Math.floor(Math.random() * 8)]; // 0, 1, 2, 3, 4, 5, 6, 7
+    // 红色值较低，以增加冷色调
+    color += letters[Math.floor(Math.random() * 4)]; // 0, 1, 2, 3
+
+    return color;
+}
+/**
+ * @description: 随机数
+ * @param {number} min
+ * @param {number} max
+ * @return {*}
+ */
+export function randomNum(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min) + min);
+}
+/**
+ * @description: 随机RGBA颜色
+ * @param {number} minColor
+ * @param {number} maxColor
+ * @param {*} op
+ * @return {*}
+ */
+export function randomRGBColor(minColor: number, maxColor: number, op = 1): string {
+    return `rgba(${randomNum(minColor, maxColor)},${randomNum(minColor, maxColor)},${randomNum(minColor, maxColor)}, ${op})`;
+}
+
+// 网络请求
+interface APIType {
+    login: string; // 登录
+    register: string; // 注册
+    class: string; // 分类列表
+    s_article: string; // 发布文章
+    list_article: string; // 文章列表
+    get_article: string; // 文章列表
+    get_class: string; // 文章列表
+    get_user: string; // 获取用户信息
+    a_comment: string; // 提交评论
+    a_comment_like: string; // 点赞
+    d_comment: string; // 删除评论
+    s_search: string; // 搜索
+}
+export const API_Type: APIType = {
+    login: 'loginUser',
+    register: 'addUser',
+    class: 'getClassList',
+    s_article: 'submitArticle',
+    list_article: 'getArticleList',
+    get_article: 'getArticle',
+    get_class: 'getClass',
+    get_user: 'getUser',
+    a_comment: 'addComment',
+    a_comment_like: 'addCommentLike',
+    d_comment: 'deleteComment',
+    s_search: 'submitSearch',
+};
+export interface RespData {
+    /**
+     * @description: 错误消息
+     */
+    msg: string;
+    /**
+     * @description: 状态码：0失败，1成功
+     */
+    status: number;
+    /**
+     * @description: 数据
+     */
+    data: { [key: string]: any };
+}
+/**
+ * @description: get请求
+ * @param {string} prefix 前缀
+ * @param {object} data 数据
+ * @return {*}
+ */
+export function getData(
+    prefix: string,
+    data: { [key: string]: any },
+): Promise<AxiosResponse<RespData>> {
+    return axios.get(base_url + prefix, {
+        params: data,
+    });
+}
+/**
+ * @description: post请求
+ * @param {string} prefix 前缀
+ * @param {object} data 数据
+ * @return {*}
+ */
+export function postData(
+    prefix: string,
+    data: { [key: string]: any },
+): Promise<AxiosResponse<RespData>> {
+    let _fd = new FormData();
+    for (let i in data) {
+        _fd.append(i, data[i]);
+    }
+    return axios.post(base_url + prefix, _fd);
+}
+
+// 其他函数
+
+/**
+ * @description: 数组分割指定长度
+ * @param {any} arr
+ * @param {number} length
+ * @return {*}
+ */
+export function spliceArray(_arr: any[], length: number) {
+    let result = [];
+    let arr = Array.isArray(_arr) ? _arr : [];
+    for (let i = 0; i < arr.length; i += length) {
+        result.push(arr.slice(i, i + length));
+    }
+    return result;
+}
+
+/**
+ * @description: 获取当前数据是数组的第几个
+ * @param {any[]} _array 分块数组
+ * @param {number} chunkIndex 分块数组处于总数组的第几个：从1开始（及当前页数）
+ * @param {number} elementIndex 处于分块数组的第几个
+ * @return {*}
+ */
+export function getPositionInSplitArrays(_array: any[], chunkIndex: number, elementIndex: number) {
+    const chunk_cache = _array[chunkIndex - 1].slice(0, chunkIndex);
+    const _preArray = _array
+        .slice(0, chunkIndex - 1)
+        .reduce((_c: any[], _v: any[]) => _c.concat(_v, _c), []) as any[];
+    return _preArray.concat(chunk_cache).length + elementIndex;
+}

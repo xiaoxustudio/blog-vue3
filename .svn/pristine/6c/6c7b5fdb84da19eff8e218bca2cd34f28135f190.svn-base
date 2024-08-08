@@ -1,0 +1,25 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-18 17:50:19
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+
+import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
+const routes: RouteRecordRaw[] = [
+    {
+        path: '/',
+        redirect: 'home',
+    },
+    {
+        name: 'home',
+        path: '/home',
+        component: () => import('@/pages/Home/Main.vue'),
+    },
+];
+const router = createRouter({
+    history: createWebHashHistory(import.meta.env.BASE_URL),
+    routes,
+});
+export default router;

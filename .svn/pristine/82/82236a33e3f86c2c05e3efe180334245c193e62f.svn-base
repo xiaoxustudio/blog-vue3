@@ -1,0 +1,26 @@
+# 个人博客
+
+## 使用
+
+```sh
+yarn # 安装依赖
+```
+
+### 没有yarn
+
+```sh
+npm i -g yarn # 安装yarn包管理工具
+```
+
+## 部署
+
+```sh
+yarn dev # 开发
+```
+
+```sh
+yarn build # 打包
+```
+
+
+

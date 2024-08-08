@@ -1,0 +1,198 @@
+<template>
+    <div
+        class="my-4 h-56 w-full"
+        :style="{
+            backgroundImage: `url(/bg.png)`,
+            backgroundSize: '100%  100% ',
+            backgroundPosition: '0 0 ',
+            opacity: '.8',
+        }"
+    ></div>
+    <el-row :gutter="20">
+        <el-col :span="12">
+            <div class="flex items-center gap-2">
+                <el-upload
+                    ref="uploadRef"
+                    :action="`${base_url}?type=${API_Type.uploadAvatar}`"
+                    :data="uploadData"
+                    name="avatar_file"
+                    :show-file-list="false"
+                    :on-success="handleAvatarSuccess"
+                    :before-upload="beforeAvatarUpload"
+                >
+                    <el-avatar
+                        shape="square"
+                        size="large"
+                        :src="
+                            _Data && _Data.avatar?.length > 0
+                                ? base_upload + _Data?.avatar
+                                : emptyAvatar
+                        "
+                    />
+                </el-upload>
+                <div class="sub-title">
+                    <div class="flex w-full">
+                        <span @dblclick="handleDBClick" v-if="!is_change" class="select-none">{{
+                            _Data?.nickname
+                        }}</span>
+                        <span v-if="is_change"
+                            ><el-input
+                                @focusout="handleFocusOut"
+                                ref="NickNameRef"
+                                type="text"
+                                minlength="2"
+                                v-model="static_data"
+                                clearable
+                            ></el-input
+                        ></span>
+                        <span class="text-sm font-bold text-gray-400">({{ _Data?.user_id }})</span>
+                    </div>
+                    <el-tag
+                        class="text-sm font-bold"
+                        :type="getTag === '普通用户' ? 'info' : 'primary'"
+                        >{{ getTag }}</el-tag
+                    >
+                </div>
+            </div>
+        </el-col>
+        <el-col :span="24">
+            <label for="username"> 用户名 </label>
+            <el-input disabled :value="_Data?.username"></el-input>
+        </el-col>
+        <el-col :span="24">
+            <label for="username"> 密码 </label>
+            <el-input
+                type="password"
+                disabled
+                :value="_Data?.password"
+                auto-complete="off"
+            ></el-input>
+        </el-col>
+        <el-col :span="24">
+            <label for="username"> 最后登录时间 </label>
+            <el-text type="primary">{{ _Data?.login_time }}</el-text>
+        </el-col>
+    </el-row>
+</template>
+<script setup lang="ts">
+import emitter from '@/EventBus';
+import { useInfoStore } from '@/store';
+import {
+    API_Type,
+    base_url,
+    base_upload,
+    postData,
+    RespData,
+    UserData,
+    emptyAvatar,
+} from '@/utils';
+import { ElMessageBox } from 'element-plus';
+import { useRoute } from 'vue-router';
+import { ref } from 'vue';
+import { ElMessage } from 'element-plus';
+import type { ElUpload, UploadProps } from 'element-plus';
+
+const route = useRoute();
+const _Data = ref<UserData>();
+const static_data = ref('');
+const UseUserInfo = useInfoStore();
+
+const is_change = ref(false);
+const NickNameRef = ref<HTMLElement>();
+const uploadData = ref<object>();
+let user_id = route.params.user_id;
+
+const uploadRef = ref<InstanceType<typeof ElUpload>>();
+
+const getTag = computed(() => (_Data.value?.group == '0' ? '管理员' : '普通用户'));
+const handleDBClick = () => {
+    is_change.value = true;
+    nextTick(() => {
+        if (NickNameRef.value) {
+            NickNameRef.value.focus({ preventScroll: true });
+        }
+    });
+};
+const submitChangeNickName = async () => {
+    await postData(`?type=${API_Type.u_user}`, {
+        token: UseUserInfo.token,
+        username: UseUserInfo.username,
+        tname: 'nickname',
+        tvalue: static_data.value,
+        id: UseUserInfo.user_id,
+    }).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            ElMessage.success({
+                message: '修改成功!',
+            });
+            updateUser();
+        } else {
+            ElMessage.error({
+                message: _data.msg,
+            });
+        }
+    });
+};
+
+const handleFocusOut = () => {
+    is_change.value = false;
+    if (NickNameRef.value && static_data.value !== _Data.value?.nickname) {
+        ElMessageBox.confirm('昵称已更改，是否修改名称?', '提示', {
+            confirmButtonText: '修改',
+            cancelButtonText: '取消',
+        })
+            .then(() => {
+                submitChangeNickName();
+            })
+            .catch(() => {
+                static_data.value = _Data.value?.nickname || '';
+            });
+    }
+};
+const updateUser = async () => {
+    await postData(`?type=${API_Type.get_user}`, {
+        token: UseUserInfo.token,
+        username: UseUserInfo.username,
+        id: user_id,
+    }).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            _Data.value = _data.data as UserData;
+            static_data.value = _Data.value?.nickname;
+            emitter.emit('HandleUpdateMenu');
+        } else {
+            ElMessage.error({
+                message: _data.msg,
+            });
+        }
+    });
+};
+
+const handleAvatarSuccess: UploadProps['onSuccess'] = (_response: RespData) => {
+    if (_response.status) {
+        updateUser();
+    } else {
+        ElMessage.error({
+            message: _response.msg,
+        });
+    }
+};
+const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
+    if (!['image/jpeg', 'image/png'].includes(rawFile.type)) {
+        ElMessage.error('图片不为png或jpeg！');
+        return false;
+    } else if (rawFile.size / 1024 / 1024 > 2) {
+        ElMessage.error('图片大小不可超过2MB！');
+        return false;
+    }
+    uploadData.value = {
+        token: UseUserInfo.token,
+        username: UseUserInfo.username,
+        id: user_id,
+    };
+    return true;
+};
+onMounted(async () => await updateUser());
+</script>
+<style scope lang="scss"></style>

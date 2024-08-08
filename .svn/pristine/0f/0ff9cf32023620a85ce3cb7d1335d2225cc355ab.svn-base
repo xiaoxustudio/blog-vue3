@@ -1,0 +1,123 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-21 15:57:52
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="w-full">
+        <div class="flex w-full items-center justify-between gap-2 py-2">
+            <div>
+                <span>文章分类：</span>
+                <el-select v-model="Data.class" placeholder="请选择文章分类" style="width: 240px">
+                    <el-option
+                        v-for="item in classList"
+                        :key="item.class_id"
+                        :label="item.class_name"
+                        :value="item.class_id"
+                    />
+                </el-select>
+            </div>
+            <div>
+                <el-button>保存草稿</el-button>
+                <el-button @click="submitArticle">发布文章</el-button>
+            </div>
+        </div>
+        <div>
+            <el-input
+                v-model="Data.title"
+                type="text"
+                placeholder="请输入标题"
+                class="py-2"
+                size="large"
+            ></el-input>
+        </div>
+        <div></div>
+        <!-- 卡片 -->
+        <div style="border: 1px solid #ccc">
+            <Toolbar
+                style="border-bottom: 1px solid #ccc"
+                :editor="editorRef"
+                :defaultConfig="toolbarConfig"
+                :mode="mode"
+            />
+            <Editor
+                style="height: 500px; overflow-y: hidden"
+                v-model="Data.content"
+                :defaultConfig="editorConfig"
+                :mode="mode"
+                @onCreated="handleCreated"
+            />
+        </div>
+    </div>
+</template>
+<script setup lang="ts">
+import '@wangeditor/editor/dist/css/style.css'; // 引入 css
+
+import { onBeforeUnmount, shallowRef } from 'vue';
+// @ts-ignore
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
+import { API_Type, ClassData, postData } from '@/utils';
+import { useInfoStore } from '@/store';
+import { ElMessage } from 'element-plus';
+const mode = 'default';
+
+// 编辑器实例，必须用 shallowRef
+const editorRef = shallowRef();
+
+const toolbarConfig = {};
+const editorConfig = { placeholder: '请输入内容...' };
+
+const Data = reactive({
+    title: '',
+    content: '',
+    class: '',
+});
+
+const classList = ref<ClassData[]>([]);
+// 组件销毁时，也及时销毁编辑器
+onBeforeUnmount(() => {
+    const editor = editorRef.value;
+    if (editor == null) return;
+    editor.destroy();
+});
+
+const handleCreated = (editor: any) => {
+    editorRef.value = editor; // 记录 editor 实例，重要！
+};
+const submitArticle = async () => {
+    await postData(`?type=${API_Type.s_article}`, {
+        username: useInfo.username,
+        token: useInfo.token,
+        data: JSON.stringify(Data),
+    }).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            ElMessage.success({
+                message: '发布文章成功！',
+            });
+            Data.title = '';
+            Data.content = '';
+            Data.class = '';
+        } else {
+            ElMessage.error({
+                message: _data.msg,
+            });
+        }
+    });
+};
+const useInfo = useInfoStore();
+onMounted(async () => {
+    await postData(`?type=${API_Type.class}`, {}).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            classList.value = _data.data as any[];
+        } else {
+            ElMessage.error({
+                message: '数据错误！',
+            });
+        }
+    });
+});
+</script>

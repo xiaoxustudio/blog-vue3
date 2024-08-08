@@ -1,0 +1,121 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-28 14:26:13
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+// 工具函数库
+export * from './network';
+export * from './types';
+export const editorConfig = {
+    MENU_CONF: {
+        codeSelectLang: {
+            codeLangs: [
+                { text: 'CSS', value: 'css' },
+                { text: 'HTML', value: 'html' },
+                { text: 'JS', value: 'javascript' },
+                { text: 'TS', value: 'typescript' },
+                { text: 'MKDown', value: 'markdown' },
+            ],
+        },
+    },
+    placeholder: '请输入内容...',
+};
+
+/**
+ * @description: 随机数
+ * @param {number} min
+ * @param {number} max
+ * @return {*}
+ */
+export function randomNum(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min) + min);
+}
+/**
+ * @description: 随机RGBA颜色
+ * @param {number} minColor
+ * @param {number} maxColor
+ * @param {*} op
+ * @return {*}
+ */
+export function randomRGBColor(minColor: number, maxColor: number, op = 1): string {
+    return `rgba(${randomNum(minColor, maxColor)},${randomNum(minColor, maxColor)},${randomNum(minColor, maxColor)}, ${op})`;
+}
+
+export const getBaseTagColor = () => randomRGBColor(100, 200, 0.8);
+
+// 其他函数
+
+/**
+ * @description: 数组分割指定长度
+ * @param {any} arr
+ * @param {number} length
+ * @return {*}
+ */
+export function spliceArray(_arr: any[], length: number): Array<any> {
+    let result = [];
+    let arr = Array.isArray(_arr) ? _arr : [];
+    for (let i = 0; i < arr.length; i += length) {
+        result.push(arr.slice(i, i + length));
+    }
+    return result;
+}
+
+/**
+ * @description: 获取当前数据是数组的第几个
+ * @param {any[]} _array 分块数组
+ * @param {number} chunkIndex 分块数组处于总数组的第几个：从1开始（及当前页数）
+ * @param {number} elementIndex 处于分块数组的第几个
+ * @return {*}
+ */
+export function getPositionInSplitArrays(
+    _array: any[],
+    chunkIndex: number,
+    elementIndex: number,
+): number {
+    const chunk_cache = _array[chunkIndex - 1].slice(0, chunkIndex);
+    const _preArray = _array
+        .slice(0, chunkIndex - 1)
+        .reduce((_c: any[], _v: any[]) => _c.concat(_v, _c), []) as any[];
+    return _preArray.concat(chunk_cache).length + elementIndex;
+}
+
+export function BuildCode(_ref: Ref<HTMLCanvasElement | undefined>, rcode: string) {
+    if (!_ref.value) return;
+    let canvas = _ref.value;
+    const width = 100;
+    const height = 36;
+    let ctx = canvas.getContext('2d')!;
+    // 清空
+    canvas.width = width;
+    canvas.height = height;
+    // 绘制背景
+    let color = randomRGBColor(140, 240);
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, width, height);
+    // 绘制验证码
+    color = randomRGBColor(30, 140);
+    ctx.fillStyle = color;
+    ctx.font = '30px sans-serif';
+    ctx.fillText(rcode, 10, height / 1.5);
+    // 绘制点遮挡
+    color = randomRGBColor(30, 140);
+    ctx.fillStyle = color;
+    ctx.font = '2px sans-serif';
+    for (let i = 0; i < 100; i++) {
+        let x = randomNum(0, width);
+        let y = randomNum(0, height);
+        ctx.fillRect(x, y, 2, 2);
+    }
+    // 绘制线遮挡
+    ctx.font = '2px sans-serif';
+    for (let i = 0; i < 30; i++) {
+        color = randomRGBColor(30, 140, Math.random());
+        ctx.fillStyle = color;
+        // let x = randomNum(0, width);
+        let y = randomNum(0, height);
+        ctx.rotate(Math.PI * 180 + randomNum(-360, 360));
+        ctx.fillRect(0, y, width, 2);
+    }
+}

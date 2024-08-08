@@ -1,0 +1,8 @@
+<template>
+    <div class="h-full w-full">
+        <Layer1></Layer1>
+    </div>
+</template>
+<script setup>
+import Layer1 from './Content/Layer1.vue';
+</script>

@@ -1,0 +1,19 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-18 17:48:59
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+import { createApp } from 'vue';
+import ElementPlus from 'element-plus';
+import 'element-plus/dist/index.css';
+import App from './App.vue';
+import router from '@/router';
+import '@/styles/taildwind.css';
+
+const app = createApp(App);
+
+app.use(ElementPlus);
+app.use(router);
+app.mount('#app');

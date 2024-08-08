@@ -1,0 +1,237 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-07-01 11:19:28
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="relative bg-white py-2 shadow-sm">
+        <el-row :gutter="20">
+            <el-col :span="4">
+                <div class="flex items-center justify-end">
+                    <span
+                        class="cursor-pointer select-none text-2xl font-bold text-blue-500"
+                        @click="$router.push('/')"
+                        >个人博客</span
+                    >
+                </div>
+            </el-col>
+            <el-col :span="2"></el-col>
+            <el-col :span="14">
+                <ul class="tarbar_menu w-full">
+                    <li class="rounded-md" @click="turnMenu">首页</li>
+                    <li class="rounded-md" @click="turnMenu">分类</li>
+                    <li class="rounded-md" @click="turnMenu">文章</li>
+                    <li class="rounded-md" @click="turnMenu">标签</li>
+                    <li class="rounded-md" @click="turnMenu">搜索</li>
+                    <li class="rounded-md" @click="turnMenu">聊天</li>
+                </ul>
+            </el-col>
+            <el-col :span="4">
+                <div class="flex items-center justify-end px-5">
+                    <span
+                        v-if="!useInfo.is_login"
+                        @click="turnGoto"
+                        class="cursor-pointer select-none px-2 text-sm text-gray-400"
+                        >未登录</span
+                    >
+                    <span
+                        v-if="useInfo.is_login"
+                        class="cursor-pointer select-none overflow-hidden text-ellipsis text-nowrap px-2 text-sm font-bold text-gray-800"
+                        >{{ _Data?.nickname }}</span
+                    >
+                    <span v-if="!useInfo.is_login" class="el-dropdown-link outline-none">
+                        <el-avatar
+                            class="cursor-pointer"
+                            :size="34"
+                            :src="
+                                _Data && _Data.avatar?.length > 0
+                                    ? base_upload + _Data?.avatar
+                                    : emptyAvatar
+                            "
+                        />
+                    </span>
+                    <el-dropdown
+                        v-if="useInfo.is_login"
+                        :hide-on-click="false"
+                        @command="handleCommand"
+                    >
+                        <span class="el-dropdown-link outline-none">
+                            <el-avatar
+                                class="cursor-pointer"
+                                :size="34"
+                                :src="
+                                    _Data && _Data.avatar?.length > 0
+                                        ? base_upload + _Data?.avatar
+                                        : emptyAvatar
+                                "
+                            />
+                        </span>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="user">个人信息</el-dropdown-item>
+                                <el-dropdown-item command="myarticle">我的文章</el-dropdown-item>
+                                <el-dropdown-item command="mycomment">我的评论</el-dropdown-item>
+                                <el-dropdown-item
+                                    command="admin"
+                                    v-if="Number(useInfo.$state.group) === 0"
+                                    >后台管理</el-dropdown-item
+                                >
+                                <el-dropdown-item command="out">登出</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                </div>
+            </el-col>
+        </el-row>
+    </div>
+</template>
+<script lang="ts" setup>
+import router from '@/router/index';
+import { useInfoStore, useSelectMenuStore } from '@/store';
+import { postData, API_Type, UserData, base_upload, emptyAvatar } from '@/utils';
+import emitter from '@/EventBus';
+
+const useInfo = useInfoStore();
+const useSelect = useSelectMenuStore();
+const _Data = ref<UserData>();
+const turnGoto = () => {
+    router.push({ name: 'login' });
+};
+const handleCommand = (command: string) => {
+    switch (command) {
+        case 'user':
+            router.push({
+                name: 'userhome',
+                params: {
+                    user_id: useInfo.user_id,
+                },
+            });
+            break;
+        case 'myarticle':
+            router.push({
+                name: 'myarticle',
+                params: {
+                    user_id: useInfo.user_id,
+                },
+            });
+            break;
+        case 'mycomment':
+            router.push({
+                name: 'mycomment',
+                params: {
+                    user_id: useInfo.user_id,
+                },
+            });
+            break;
+        case 'admin':
+            router.push({
+                name: 'admin',
+            });
+            break;
+        case 'out':
+            useInfo.$reset();
+            router.replace({
+                name: 'home',
+            });
+            break;
+    }
+};
+const updateMenu = () => {
+    const _children: Element[] = [...document.querySelector('.tarbar_menu')!.children];
+    if (_children) {
+        for (let i of _children) {
+            i.classList.remove('active');
+        }
+        _children[useSelect.select].classList.add('active');
+    }
+};
+const turnMenu = (_e: any) => {
+    const _name = _e.target.textContent;
+    switch (_name) {
+        case '首页':
+            router.push({ name: 'home' });
+            break;
+        case '分类':
+            router.push({ name: 'class' });
+            break;
+        case '文章':
+            router.push({ name: 'article' });
+            break;
+        case '标签':
+            router.push({ name: 'tags' });
+            break;
+        case '搜索':
+            router.push({ name: 'search' });
+            break;
+        case '聊天':
+            router.push({ name: 'chat' });
+            break;
+    }
+    updateMenu();
+};
+const HandleUpdateMenu = () => {
+    if (useInfo.is_login) {
+        postData(`?type=${API_Type.get_user}`, {
+            username: useInfo.username,
+            token: useInfo.token,
+        }).then((data) => {
+            const _data = data.data;
+            if (_data.status) {
+                _Data.value = _data.data as UserData;
+            } else {
+                ElMessage.error({
+                    message: _data.msg,
+                });
+                useInfo.$reset();
+                router.replace({
+                    name: 'login',
+                });
+            }
+        });
+    }
+    updateMenu();
+};
+
+emitter.on('updateMenu', updateMenu);
+emitter.on('HandleUpdateMenu', HandleUpdateMenu);
+
+onMounted(() => HandleUpdateMenu());
+onUnmounted(() => {
+    emitter.off('updateMenu');
+});
+</script>
+<style lang="scss" scoped>
+.el-row {
+    margin-right: 0 !important;
+    // 菜单项
+    ul {
+        list-style-type: none;
+        display: flex;
+        li {
+            text-align: center;
+            display: inline;
+            width: 100%;
+            padding: 5px 20px;
+            cursor: pointer;
+            user-select: none;
+            transition: all $base-ani linear;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            color: #555;
+            &:hover {
+                background-color: rgba(#ddd, 0.3);
+                color: #000;
+            }
+        }
+    }
+    // 头像
+    .el-avatar {
+        &:hover {
+            filter: blur(1px) hue-rotate(180deg);
+        }
+    }
+}
+</style>

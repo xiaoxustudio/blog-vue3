@@ -1,0 +1,41 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-18 21:17:51
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <el-menu
+        :default-active="activeIndex"
+        class="el-menu-demo"
+        mode="horizontal"
+        :ellipsis="false"
+        @select="handleSelect"
+    >
+        <el-menu-item class="hover:bg-transparent focus:bg-transparent"> 个人博客 </el-menu-item>
+        <div class="flex-grow" />
+        <el-menu-item index="1">首页</el-menu-item>
+        <el-sub-menu index="2" v-if="is_login">
+            <template #title>徐然</template>
+            <el-menu-item index="2-1">个人信息</el-menu-item>
+            <el-menu-item index="2-2">我的文章</el-menu-item>
+            <el-menu-item index="2-3">登出</el-menu-item>
+        </el-sub-menu>
+        <el-sub-menu index="2" v-else>
+            <template #title>徐然</template>
+            <el-menu-item index="2-1">个人信息</el-menu-item>
+            <el-menu-item index="2-2">我的文章</el-menu-item>
+            <el-menu-item index="2-3">登出</el-menu-item>
+        </el-sub-menu>
+    </el-menu>
+</template>
+<script lang="ts" setup>
+import { ref } from 'vue';
+
+const activeIndex = ref('1');
+const is_login = ref(false);
+const handleSelect = (key: string, keyPath: string[]) => {
+    console.log(key, keyPath);
+};
+</script>

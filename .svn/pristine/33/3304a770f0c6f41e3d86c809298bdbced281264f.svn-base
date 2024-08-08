@@ -1,0 +1,287 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-27 21:34:11
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+// 工具函数库
+
+import axios, { AxiosResponse } from 'axios';
+
+const base_url = '/api/api.php';
+axios.defaults.data = 'application/json';
+
+export const editorConfig = {
+    MENU_CONF: {
+        codeSelectLang: {
+            codeLangs: [
+                { text: 'CSS', value: 'css' },
+                { text: 'HTML', value: 'html' },
+                { text: 'JS', value: 'javascript' },
+                { text: 'TS', value: 'typescript' },
+                { text: 'MKDown', value: 'markdown' },
+            ],
+        },
+    },
+    placeholder: '请输入内容...',
+};
+// 聊天数据
+export interface ChatData {
+    user_id: string;
+    msg: string;
+    time: string;
+    $user?: UserData;
+}
+// 用户数据
+export interface UserData {
+    id: string;
+    user_id: string;
+    nickname: string;
+    username: string;
+    password: string;
+    login_time: string;
+    group: string;
+    token: string;
+}
+// 分类数据
+export interface ClassData {
+    id: string;
+    class_id: string;
+    class_name: string;
+    class_desc: string;
+}
+// 评论数据
+export interface CommentData {
+    comment_id: string;
+    comment_content: string;
+    comment_like: string;
+    comment_author_id: string;
+    comment_article_id: string;
+    comment_time: string;
+    $user?: UserData;
+    $article?: ArticleData;
+}
+// 文章数据
+export interface ArticleData {
+    id: string;
+    article_class: string;
+    article_id: string;
+    article_title: string;
+    article_content: string;
+    article_see: string;
+    article_time: string;
+    author_id: string;
+    article_tags: string;
+    $user?: UserData;
+    $class?: ClassData;
+    $comments?: CommentData[];
+}
+/**
+ * @description: 随机数
+ * @param {number} min
+ * @param {number} max
+ * @return {*}
+ */
+export function randomNum(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min) + min);
+}
+/**
+ * @description: 随机RGBA颜色
+ * @param {number} minColor
+ * @param {number} maxColor
+ * @param {*} op
+ * @return {*}
+ */
+export function randomRGBColor(minColor: number, maxColor: number, op = 1): string {
+    return `rgba(${randomNum(minColor, maxColor)},${randomNum(minColor, maxColor)},${randomNum(minColor, maxColor)}, ${op})`;
+}
+
+export const getBaseTagColor = () => randomRGBColor(100, 200, 0.8);
+
+// 网络请求
+interface APIType {
+    login: string; // 登录
+    register: string; // 注册
+    class: string; // 分类列表
+    tags: string; // 标签
+    s_article: string; // 发布文章
+    list_article: string; // 文章列表
+    get_article: string; // 文章列表
+    get_class: string; // 文章列表
+    get_user: string; // 获取用户信息
+    a_comment: string; // 提交评论
+    a_comment_like: string; // 点赞
+    d_comment: string; // 删除评论
+    s_search: string; // 搜索
+    get_myarticle: string; // 我的文章
+    get_mycommentlist: string; // 我的评论
+    u_user: string; // 修改用户数据
+    u_article: string; // 修改文章数据
+    // admin 界面
+    admin_getUserList: string; // 获取用户列表
+    admin_getArticleList: string; // 获取文章列表
+    admin_getCommentList: string; // 获取评论列表
+    admin_updatesUser: string; // 更新用户
+    admin_updatesArticle: string; // 更新文章
+    admin_updatesComment: string; // 更新文章
+    admin_deleteUser: string; // 删除用户
+    admin_deleteArticle: string; // 删除文章
+    admin_deleteComment: string; // 删除评论
+    // 聊天室
+    getChatList: string; // 获取聊天数据
+    addMessage: string; // 发送聊天数据
+    clearChat: string; // 清空聊天室
+    chatSocket:string; // 聊天室Socket
+}
+export const API_Type: APIType = {
+    login: 'loginUser',
+    register: 'addUser',
+    class: 'getClassList',
+    tags: 'getTags',
+    s_article: 'submitArticle',
+    list_article: 'getArticleList',
+    get_article: 'getArticle',
+    get_class: 'getClass',
+    get_user: 'getUser',
+    a_comment: 'addComment',
+    a_comment_like: 'addCommentLike',
+    d_comment: 'deleteComment',
+    s_search: 'submitSearch',
+    get_myarticle: 'getMyArticle',
+    get_mycommentlist: 'getMyCommentList',
+    u_user: 'updateUser',
+    u_article: 'updateArticle',
+    admin_getUserList: 'getUserList',
+    admin_getArticleList: 'getArticleList',
+    admin_getCommentList: 'getCommentList',
+    admin_deleteUser: 'deleteUser',
+    admin_updatesUser: 'updatesUser',
+    admin_updatesArticle: 'updatesArticle',
+    admin_updatesComment: 'updatesComment',
+    admin_deleteArticle: 'deleteArticle',
+    admin_deleteComment: 'deleteComment',
+    getChatList: 'getChatList',
+    addMessage: 'addMessage',
+    clearChat: 'clearChat',
+    chatSocket: 'chatSocket',
+};
+export interface RespData {
+    /**
+     * @description: 错误消息
+     */
+    msg: string;
+    /**
+     * @description: 状态码：0失败，1成功
+     */
+    status: number;
+    /**
+     * @description: 数据
+     */
+    data: { [key: string]: any };
+}
+/**
+ * @description: get请求
+ * @param {string} prefix 前缀
+ * @param {object} data 数据
+ * @return {*}
+ */
+export function getData(
+    prefix: string,
+    data: { [key: string]: any },
+): Promise<AxiosResponse<RespData>> {
+    return axios.get(base_url + prefix, {
+        params: data,
+    });
+}
+/**
+ * @description: post请求
+ * @param {string} prefix 前缀
+ * @param {object} data 数据
+ * @return {*}
+ */
+export function postData(
+    prefix: string,
+    data: { [key: string]: any },
+): Promise<AxiosResponse<RespData>> {
+    let _fd = new FormData();
+    for (let i in data) {
+        if (i) _fd.append(i, data[i]);
+    }
+    return axios.post(base_url + prefix, _fd);
+}
+
+// 其他函数
+
+/**
+ * @description: 数组分割指定长度
+ * @param {any} arr
+ * @param {number} length
+ * @return {*}
+ */
+export function spliceArray(_arr: any[], length: number): Array<any> {
+    let result = [];
+    let arr = Array.isArray(_arr) ? _arr : [];
+    for (let i = 0; i < arr.length; i += length) {
+        result.push(arr.slice(i, i + length));
+    }
+    return result;
+}
+
+/**
+ * @description: 获取当前数据是数组的第几个
+ * @param {any[]} _array 分块数组
+ * @param {number} chunkIndex 分块数组处于总数组的第几个：从1开始（及当前页数）
+ * @param {number} elementIndex 处于分块数组的第几个
+ * @return {*}
+ */
+export function getPositionInSplitArrays(
+    _array: any[],
+    chunkIndex: number,
+    elementIndex: number,
+): number {
+    const chunk_cache = _array[chunkIndex - 1].slice(0, chunkIndex);
+    const _preArray = _array
+        .slice(0, chunkIndex - 1)
+        .reduce((_c: any[], _v: any[]) => _c.concat(_v, _c), []) as any[];
+    return _preArray.concat(chunk_cache).length + elementIndex;
+}
+
+export function BuildCode(_ref: Ref<HTMLCanvasElement | undefined>, rcode: string) {
+    if (!_ref.value) return;
+    let canvas = _ref.value;
+    const width = 100;
+    const height = 36;
+    let ctx = canvas.getContext('2d')!;
+    // 清空
+    canvas.width = width;
+    canvas.height = height;
+    // 绘制背景
+    let color = randomRGBColor(140, 240);
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, width, height);
+    // 绘制验证码
+    color = randomRGBColor(30, 140);
+    ctx.fillStyle = color;
+    ctx.font = '30px sans-serif';
+    ctx.fillText(rcode, 10, height / 1.5);
+    // 绘制点遮挡
+    color = randomRGBColor(30, 140);
+    ctx.fillStyle = color;
+    ctx.font = '2px sans-serif';
+    for (let i = 0; i < 100; i++) {
+        let x = randomNum(0, width);
+        let y = randomNum(0, height);
+        ctx.fillRect(x, y, 2, 2);
+    }
+    // 绘制线遮挡
+    ctx.font = '2px sans-serif';
+    for (let i = 0; i < 30; i++) {
+        color = randomRGBColor(30, 140, Math.random());
+        ctx.fillStyle = color;
+        // let x = randomNum(0, width);
+        let y = randomNum(0, height);
+        ctx.rotate(Math.PI * 180 + randomNum(-360, 360));
+        ctx.fillRect(0, y, width, 2);
+    }
+}

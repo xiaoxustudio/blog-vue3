@@ -1,0 +1,32 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-21 10:56:18
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+
+<template>
+    <Head></Head>
+    <div class="el-scrollbar h-screen w-full">
+        <el-scrollbar height="90vh">
+            <div class="container_tw h-full w-4/5">
+                <Suspense>
+                    <RouterView></RouterView>
+                </Suspense>
+            </div>
+        </el-scrollbar>
+    </div>
+    <Footer></Footer>
+</template>
+<script setup lang="ts">
+import { RouterView } from 'vue-router';
+import Footer from '@/components/Footer.vue';
+import Head from '@/components/Head.vue';
+</script>
+<style scoped>
+div.container_tw {
+    margin: 30px auto 0;
+    overflow: hidden;
+}
+</style>

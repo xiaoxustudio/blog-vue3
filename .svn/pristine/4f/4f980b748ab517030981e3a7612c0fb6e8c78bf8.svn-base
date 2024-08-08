@@ -1,0 +1,87 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-18 21:47:44
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+import { defineConfig } from 'vite';
+import AutoImport from 'unplugin-auto-import/vite';
+import Components from 'unplugin-vue-components/vite';
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
+import { fileURLToPath, URL } from 'node:url';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
+import vue from '@vitejs/plugin-vue';
+import path from 'path';
+
+export default defineConfig({
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, './src'),
+        },
+    },
+    plugins: [
+        vue(),
+        AutoImport({
+            resolvers: [ElementPlusResolver()],
+        }),
+        Components({
+            resolvers: [ElementPlusResolver()],
+        }),
+    ],
+    css: {
+        preprocessorOptions: {
+            postcss: {
+                plugins: [tailwindcss, autoprefixer],
+            },
+            scss: {
+                additionalData: '@import "@/styles/global.module.scss";', // 添加公共样式
+            },
+        },
+    },
+    build: {
+        chunkSizeWarningLimit: 1500,
+        emptyOutDir: true,
+        terserOptions: {
+            compress: {
+                drop_console: true,
+                drop_debugger: true,
+            },
+        },
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        return id.toString().split('node_modules/')[1].split('/')[0].toString();
+                    }
+                },
+
+                chunkFileNames: (chunkInfo) => {
+                    const facadeModuleId = chunkInfo.facadeModuleId
+                        ? chunkInfo.facadeModuleId.split('/')
+                        : [];
+                    const fileName = facadeModuleId[facadeModuleId.length - 2] || '[name]';
+                    return `js/${fileName}/[name].[hash].js`;
+                },
+
+                assetFileNames: (assetInfo) => {
+                    if (assetInfo.name) {
+                        const info = assetInfo.name.split('.');
+                        let extType = info[info.length - 1];
+                        if (/\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/i.test(assetInfo.name)) {
+                            extType = 'media';
+                        } else if (/\.(png|jpe?g|gif|svg)(\?.*)?$/.test(assetInfo.name)) {
+                            extType = 'img';
+                        } else if (/\.(woff2?|eot|ttf|otf)(\?.*)?$/i.test(assetInfo.name)) {
+                            extType = 'fonts';
+                        }
+                        return `${extType}/[name]-[hash][extname]`;
+                    } else {
+                        return `assets/[name]-[hash][extname]`;
+                    }
+                },
+            },
+        },
+    },
+});

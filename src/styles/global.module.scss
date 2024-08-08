@@ -1,0 +1,9 @@
+// 基本动画时间
+$base-ani: 0.3s;
+body {
+    height: 100vh;
+}
+.active {
+    font-weight: bold;
+    color: lighten($color: blue, $amount: 25%) !important;
+}

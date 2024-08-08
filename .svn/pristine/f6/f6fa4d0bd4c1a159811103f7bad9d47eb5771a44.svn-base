@@ -1,0 +1,185 @@
+<template>
+    <div class="flex w-full flex-col overflow-scroll bg-white p-4">
+        <div class="flex w-full items-center justify-end">
+            <el-skeleton :loading="is_ready" animated>
+                <template #default>
+                    <div class="flex-1">
+                        <el-button @click="$router.go(-1)">返回</el-button>
+                    </div>
+                    <div>
+                        <el-breadcrumb separator="/">
+                            <el-breadcrumb-item :to="{ name: 'home' }">首页</el-breadcrumb-item>
+                            <el-breadcrumb-item>{{ classData?.class_name }}</el-breadcrumb-item>
+                        </el-breadcrumb>
+                    </div>
+                </template>
+                <template #template>
+                    <div class="flex w-full justify-between">
+                        <el-skeleton-item style="width: 100px" />
+                        <el-skeleton-item style="width: 100px" />
+                    </div>
+                </template>
+            </el-skeleton>
+        </div>
+        <div class="flex-1">
+            <!-- 内容 -->
+            <el-skeleton :loading="is_ready" animated>
+                <template #default>
+                    <div class="title text-2xl font-bold">
+                        <span>{{ _Article?.article_title }}</span>
+                    </div>
+                    <div class="bottom my-2 flex gap-4 py-2 text-sm">
+                        <div>
+                            <el-icon color="#000"><User /></el-icon>
+                            <span class="px-1 text-gray-400">{{
+                                _Article?.['$user'].nickname
+                            }}</span>
+                        </div>
+                        <div>
+                            <el-icon color="#000"><Collection /></el-icon>
+                            <span class="px-1 text-gray-400">{{
+                                _Article?.['$class'].class_name
+                            }}</span>
+                        </div>
+                        <div>
+                            <el-icon color="#000"><View /></el-icon>
+                            <span class="px-1 text-gray-400">{{ _Article?.article_see }}</span>
+                        </div>
+                        <div>
+                            <el-icon color="#000"><Timer /></el-icon>
+                            <span class="px-1 text-gray-400">{{ _Article?.article_time }}</span>
+                        </div>
+                    </div>
+                </template>
+            </el-skeleton>
+            <el-scrollbar class="w-full" height="95vh">
+                <div class="h-full text-gray-800" v-html="_Article?.article_content"></div>
+            </el-scrollbar>
+            <div class="bottom py-4">
+                <div class="flex font-serif font-bold text-gray-400">
+                    <span>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 256 256"
+                            class="h-full align-middle"
+                        >
+                            <path
+                                fill="#f00"
+                                d="M128 20a108 108 0 1 0 108 108A108.12 108.12 0 0 0 128 20m84 108a83.6 83.6 0 0 1-16.75 50.28L77.72 60.75A84 84 0 0 1 212 128m-168 0a83.6 83.6 0 0 1 16.75-50.28l117.53 117.53A84 84 0 0 1 44 128"
+                            />
+                        </svg>
+                    </span>
+                    <span>作者声明：禁止转载</span>
+                </div>
+            </div>
+            <div class="comment">
+                <el-skeleton :loading="is_ready" animated>
+                    <template #default>
+                        <Comment
+                            ref="commentRef"
+                            :data="commentDataRef"
+                            :article="_Article"
+                            :perentHandle="{
+                                updateArticle,
+                            }"
+                            @submitComment="handleComment"
+                        ></Comment>
+                    </template>
+                </el-skeleton>
+            </div>
+        </div>
+    </div>
+</template>
+<script setup lang="ts">
+import { API_Type, ArticleData, ClassData, postData } from '@/utils';
+import { useRoute } from 'vue-router';
+import { useArticleStore, useClassStore, useInfoStore } from '@/store/index';
+import Comment from './Comment.vue';
+
+const route = useRoute();
+interface _Up {
+    content: string;
+    author_id: string;
+    article_id: string;
+}
+const useArticle = useArticleStore();
+const useClass = useClassStore();
+const userInfo = useInfoStore();
+
+const classData = ref<ClassData>();
+const _Article = ref<ArticleData>();
+const commentDataRef = ref();
+const commentRef = ref();
+
+const is_ready = ref(true);
+
+const handleComment = async (_data: Ref<_Up>) => {
+    let data = { ..._data.value };
+    data.article_id = _Article.value!.article_id;
+    await postData(`?type=${API_Type.a_comment}`, {
+        username: userInfo.username,
+        token: userInfo.token,
+        data: JSON.stringify(data),
+    }).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            ElMessage.success({
+                message: '评论成功！',
+            });
+            commentRef.value.reset();
+            updateArticle();
+        } else {
+            ElMessage.error({
+                message: '评论出现数据错误！(comment)',
+            });
+        }
+    });
+};
+
+const { article_id, article_class } = route.params;
+
+const updateArticle = async () => {
+    is_ready.value = true;
+    if (article_id && article_class) {
+        await postData(`?type=${API_Type.get_class}`, {
+            class_id: article_class,
+        }).then((data) => {
+            const _data = data.data;
+            if (_data.status) {
+                classData.value = _data.data[0] as ClassData;
+                useClass.$patch(classData.value);
+            } else {
+                ElMessage.error({
+                    message: _data.msg,
+                });
+            }
+        });
+        await postData(`?type=${API_Type.get_article}`, {
+            article_id,
+        }).then((data) => {
+            const _data = data.data;
+            if (_data.status) {
+                _Article.value = _data.data[0] as ArticleData;
+                useArticle.$patch(_Article.value);
+                commentDataRef.value = _Article.value.$comments;
+            } else {
+                ElMessage.error({
+                    message: _data.msg,
+                });
+            }
+        });
+    }
+    is_ready.value = false;
+};
+
+onMounted(async () => {
+    if (article_id && article_class) {
+        await updateArticle();
+    } else {
+        classData.value = useClass.$state;
+        _Article.value = useArticle.$state;
+    }
+});
+</script>

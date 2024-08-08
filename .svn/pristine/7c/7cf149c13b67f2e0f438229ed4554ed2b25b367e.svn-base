@@ -1,0 +1,19 @@
+import { defineStore } from 'pinia';
+
+/**
+ * @description: 存储用户信息
+ * @return {*}
+ */
+export const useInfoStore = defineStore('userinfo', {
+    state: () => ({ is_login: false, username: '', token: '' }),
+    persist: true,
+});
+
+/**
+ * @description: 存储菜单选择
+ * @return {*}
+ */
+export const useSelectMenuStore = defineStore('page', {
+    state: () => ({ select: 0 }),
+    persist: true,
+});

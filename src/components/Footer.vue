@@ -1,0 +1,48 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-21 14:32:13
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="mt-10 block w-full border-t-[1px] bg-white py-4">
+        <el-row class="w-full" :gutter="20">
+            <el-col :span="8"></el-col>
+            <el-col :span="8" class="flex items-center justify-center">
+                <div class="f select-none">
+                    <div class="flex flex-col items-center justify-center">
+                        <p class="text-center text-gray-500">个人博客 - 项目Project URL</p>
+                        <el-link type="info"
+                            >svn://svn.svnbucket.com/xuranyyds/blog_project/</el-link
+                        >
+                    </div>
+                </div></el-col
+            >
+            <el-col :span="8"></el-col>
+        </el-row>
+    </div>
+</template>
+
+<style lang="scss" scoped>
+.el-row {
+    margin-bottom: 20px;
+    margin-right: 0 !important;
+    .grid-content {
+        border-radius: 4px;
+        min-height: 36px;
+    }
+    .el-col {
+        border-radius: 4px;
+    }
+    &:last-child {
+        margin-bottom: 0;
+    }
+    .f {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        font-size: 15px;
+    }
+}
+</style>

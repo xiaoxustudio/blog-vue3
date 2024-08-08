@@ -1,0 +1,78 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-25 16:45:23
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="h-full w-full bg-white p-5">
+        <el-row>
+            <el-col :span="22"
+                ><el-input
+                    v-model="search_val"
+                    type="text"
+                    minlength="2"
+                    placeholder="请输入要搜索的文章标题"
+                    clearable
+                ></el-input
+            ></el-col>
+            <el-col :span="2"
+                ><el-button class="w-full" @click="updateSearch">搜索</el-button></el-col
+            >
+        </el-row>
+        <el-skeleton :loading="is_raedy" animated>
+            <template #template>
+                <el-skeleton-item variant="p" class="m-2 p-4"></el-skeleton-item>
+                <el-skeleton-item variant="p" class="m-2 p-4"></el-skeleton-item>
+                <el-skeleton-item variant="p" class="m-2 p-4"></el-skeleton-item>
+                <el-skeleton-item variant="p" class="m-2 p-4"></el-skeleton-item>
+                <el-skeleton-item variant="p" class="m-2 p-4"></el-skeleton-item>
+                <el-skeleton-item variant="p" class="m-2 p-4"></el-skeleton-item>
+            </template>
+            <template #default>
+                <el-empty v-if="list.length === 0" description="未找到相关文章" />
+                <ArticleCard
+                    v-if="list.length !== 0"
+                    :key="item.id + item.article_id"
+                    v-for="item in list"
+                    :data="item"
+                    :search_title="search_val"
+                ></ArticleCard>
+            </template>
+        </el-skeleton>
+    </div>
+</template>
+<script setup lang="ts">
+import { API_Type, ArticleData, postData } from '@/utils';
+
+defineOptions({
+    name: 'Search',
+});
+const is_raedy = ref(false);
+const search_val = ref('');
+
+const list = shallowRef<ArticleData[]>([]);
+
+const updateSearch = async () => {
+    if (!search_val.value) {
+        ElMessage.warning({
+            message: '请输入要搜索的文章标题',
+        });
+        return;
+    }
+    is_raedy.value = true;
+    list.value = [];
+    await postData(`?type=${API_Type.s_search}`, {
+        title: search_val.value,
+    }).then((_res) => {
+        const _data = _res.data;
+        if (_data.status) {
+            is_raedy.value = false;
+            list.value = _data.data as ArticleData[];
+        } else {
+            is_raedy.value = false;
+        }
+    });
+};
+</script>

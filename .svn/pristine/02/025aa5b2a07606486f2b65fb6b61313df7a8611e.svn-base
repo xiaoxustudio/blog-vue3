@@ -1,0 +1,12 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-23 12:28:49
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+import mitt from 'mitt';
+
+const emitter = mitt();
+
+export default emitter;

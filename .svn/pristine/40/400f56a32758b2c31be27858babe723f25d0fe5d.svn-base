@@ -1,0 +1,159 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-22 21:48:38
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="h-full w-full">
+        <div class="comment_container flex flex-col">
+            <div class="text-xl font-bold text-gray-700">评论区</div>
+            <div class="comment_container flex w-full flex-col">
+                <CommentCard
+                    v-for="(item, index) in CurrentData"
+                    :key="
+                        item.comment_id.toString() +
+                        item.comment_author_id.toString() +
+                        item.comment_author_id.toString()
+                    "
+                    :data="item"
+                    :floor="getPositionInSplitArrays(spliceArrayVal, currentPage, index)"
+                    :article="article"
+                    :perent-handle="perentHandle"
+                ></CommentCard>
+            </div>
+            <div class="w-full p-2">
+                <el-pagination
+                    @current-change="handleChange"
+                    class="w-full items-center justify-center"
+                    background
+                    v-model="currentPage"
+                    :page-size="page_count"
+                    :hide-on-single-page="true"
+                    layout="prev, pager, next"
+                    :total="_props.data.length"
+                />
+            </div>
+        </div>
+        <div style="border: 1px solid #ccc">
+            <Toolbar
+                style="border-bottom: 1px solid #ccc"
+                :editor="editorRef"
+                :defaultConfig="toolbarConfig"
+                :mode="mode"
+            />
+            <Editor
+                style="height: 300px; overflow-y: hidden"
+                v-model="comment_data.content"
+                :defaultConfig="editorConfig"
+                :mode="mode"
+                @onCreated="handleCreated"
+            />
+            <div class="flex justify-end p-2">
+                <el-button @click="submitComment" class="">发布评论</el-button>
+            </div>
+        </div>
+    </div>
+</template>
+<script setup lang="ts">
+import '@wangeditor/editor/dist/css/style.css'; // 引入 css
+import CommentCard from '@/components/CommentCard.vue';
+import { onBeforeUnmount, shallowRef } from 'vue';
+// @ts-ignore
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
+import { useInfoStore } from '@/store';
+import {
+    API_Type,
+    ArticleData,
+    CommentData,
+    getPositionInSplitArrays,
+    postData,
+    spliceArray,
+    UserData,
+} from '@/utils';
+defineOptions({
+    name: 'Comment',
+});
+defineExpose({
+    reset() {
+        comment_data.value.content = '';
+    },
+});
+interface _Prop {
+    data: CommentData[];
+    article: ArticleData;
+    perentHandle: { [key: string]: Function };
+}
+const _props = withDefaults(defineProps<_Prop>(), {
+    data: () => [] as CommentData[],
+    article: () => ({}) as ArticleData,
+});
+const page_count = ref(5);
+const currentPage = ref(1);
+const spliceArrayVal = computed(() => spliceArray(_props.data, page_count.value));
+// const CurrentData = ref<CommentData[]>(spliceArrayVal.value[currentPage.value - 1]);
+// watch(
+//     [spliceArrayVal, currentPage],
+//     () => (CurrentData.value = spliceArrayVal.value[currentPage.value - 1]),
+// );
+const CurrentData = computed<CommentData[]>(() => spliceArrayVal.value[currentPage.value - 1]);
+const handleChange = (value: number) => {
+    currentPage.value = value;
+};
+
+const emit = defineEmits(['submitComment']);
+const useInfo = useInfoStore();
+const _Data = shallowRef<UserData>();
+const editorRef = shallowRef();
+const mode = 'default';
+
+interface _Up {
+    content: string;
+    author_id: string;
+    article_id: string;
+}
+const comment_data = ref<_Up>({
+    content: '',
+    author_id: '',
+    article_id: '',
+});
+const toolbarConfig = {};
+const editorConfig = { placeholder: '请输入内容...' };
+
+// 组件销毁时，也及时销毁编辑器
+onBeforeUnmount(() => {
+    const editor = editorRef.value;
+    if (editor == null) return;
+    editor.destroy();
+});
+
+const handleCreated = (editor: any) => {
+    editorRef.value = editor; // 记录 editor 实例，重要！
+};
+const submitComment = () => {
+    emit('submitComment', comment_data);
+};
+
+const updateComment = async () => {
+    if (useInfo.is_login) {
+        await postData(`?type=${API_Type.get_user}`, {
+            username: useInfo.username,
+            token: useInfo.token,
+            id: comment_data.value.author_id,
+        }).then((data) => {
+            const _data = data.data;
+            if (_data.status) {
+                _Data.value = _data.data as UserData;
+                comment_data.value.author_id = _Data.value.user_id;
+            } else {
+                ElMessage.error({
+                    message: _data.msg,
+                });
+            }
+        });
+    }
+};
+
+onMounted(async () => await updateComment());
+</script>

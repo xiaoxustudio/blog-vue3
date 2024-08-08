@@ -1,0 +1,42 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-20 22:34:30
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="w-full">
+        <div class="flex w-full items-center justify-end">
+            <el-button type="primary" @click="$router.push('edit')">发布文章</el-button>
+        </div>
+        <!-- 卡片 -->
+        <ArticleCard
+            :key="item.id + item.article_id"
+            v-for="item in list"
+            :data="item"
+        ></ArticleCard>
+    </div>
+</template>
+<script lang="ts" setup>
+import ArticleCard from '@/components/ArticleCard.vue';
+import { useInfoStore } from '@/store';
+import { postData, API_Type, ArticleData } from '@/utils';
+import { reactive } from 'vue';
+const useInfo = useInfoStore();
+
+let list = reactive<ArticleData[]>([]);
+await postData(`?type=${API_Type.list_article}`, {
+    username: useInfo.username,
+    token: useInfo.token,
+}).then((data) => {
+    const _data = data.data;
+    if (_data.status) {
+        list = _data.data as any[];
+    } else {
+        ElMessage.error({
+            message: _data.msg,
+        });
+    }
+});
+</script>

@@ -1,0 +1,57 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-25 22:59:02
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <el-scrollbar class="w-full" height="95vh">
+        <el-skeleton :rows="5" :loading="is_ready" animated>
+            <template #default>
+                <el-table empty-text="暂无评论" :data="list" style="width: 100%; height: 100%">
+                    <el-table-column prop="id" label="id" />
+                    <el-table-column prop="comment_id" label="评论ID" />
+                    <el-table-column prop="comment_like" label="评论点赞" />
+                    <el-table-column label="评论内容">
+                        <template #default="scope">
+                            <span class="w-full overflow-hidden text-ellipsis text-nowrap">
+                                {{ scope.row.comment_content }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="comment_author_id"
+                        label="评论作者用户ID"
+                        align="center"
+                    />
+                    <el-table-column prop="comment_time" label="评论发布时间" />
+                </el-table>
+            </template>
+        </el-skeleton>
+    </el-scrollbar>
+</template>
+<script setup lang="ts">
+import emitter from '@/EventBus';
+import { API_Type, postData, CommentData } from '@/utils';
+const list = ref<CommentData[]>([]);
+const is_ready = ref(true);
+
+onMounted(() => {
+    is_ready.value = true;
+    emitter.emit('handleAdmin');
+    postData(`?type=${API_Type.admin_getCommentList}`, {}).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            const _list = _data.data as CommentData[];
+            list.value = Array.isArray(_list) ? _list : [];
+            is_ready.value = false;
+        } else {
+            ElMessage.error({
+                message: _data.msg,
+            });
+        }
+    });
+});
+</script>
+<style scope lang="scss"></style>

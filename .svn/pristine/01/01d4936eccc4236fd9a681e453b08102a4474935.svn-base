@@ -1,0 +1,45 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-22 22:23:20
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+import { ArticleData, ClassData } from '@/utils';
+import { defineStore } from 'pinia';
+
+/**
+ * @description: 存储用户信息
+ * @return {*}
+ */
+export const useInfoStore = defineStore('userinfo', {
+    state: () => ({ is_login: false, username: '', user_id: '', token: '' }),
+    persist: true,
+});
+
+/**
+ * @description: 存储菜单选择
+ * @return {*}
+ */
+export const useSelectMenuStore = defineStore('page', {
+    state: () => ({ select: 0 }),
+    persist: true,
+});
+/**
+ * @description: 存储菜单选择
+ * @return {*}
+ */
+export const useArticleSelectStore = defineStore('ArticleSelect', {
+    state: () => ({ select: 0 }),
+    persist: true,
+});
+
+// 其他store
+export const useArticleStore = defineStore('Article', {
+    state: () => ({}) as ArticleData,
+    persist: true,
+});
+export const useClassStore = defineStore('Class', {
+    state: () => ({}) as ClassData,
+    persist: true,
+});

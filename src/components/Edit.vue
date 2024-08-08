@@ -1,0 +1,173 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-25 16:37:11
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="w-full">
+        <div class="flex w-full items-center justify-between gap-2 py-2">
+            <div>
+                <span>文章分类：</span>
+                <el-select v-model="Data.class" placeholder="请选择文章分类" style="width: 240px">
+                    <el-option
+                        v-for="item in classList"
+                        :key="item.class_id"
+                        :label="item.class_name"
+                        :value="item.class_id"
+                    />
+                </el-select>
+            </div>
+            <div>
+                <el-button @click="submitArticle">发布文章</el-button>
+            </div>
+        </div>
+        <div class="flex gap-2 rounded-md bg-white p-2">
+            <el-tag
+                v-for="tag in dynamicTags"
+                :key="tag"
+                closable
+                :disable-transitions="false"
+                @close="handleClose(tag)"
+            >
+                {{ tag }}
+            </el-tag>
+            <el-input
+                v-if="inputVisible"
+                ref="InputRef"
+                v-model="inputValue"
+                class="w-20"
+                size="small"
+                @keyup.enter="handleInputConfirm"
+                @blur="handleInputConfirm"
+            />
+            <el-button v-else class="button-new-tag" size="small" @click="showInput">
+                + 新建标签
+            </el-button>
+        </div>
+        <div>
+            <el-input
+                v-model="Data.title"
+                type="text"
+                placeholder="请输入标题"
+                class="py-2"
+                size="large"
+            ></el-input>
+        </div>
+        <div></div>
+        <!-- 卡片 -->
+        <div style="border: 1px solid #ccc">
+            <Toolbar
+                style="border-bottom: 1px solid #ccc"
+                :editor="editorRef"
+                :defaultConfig="toolbarConfig"
+                :mode="mode"
+            />
+            <Editor
+                style="height: 500px; overflow-y: hidden"
+                v-model="Data.content"
+                :defaultConfig="editorConfig"
+                :mode="mode"
+                @onCreated="handleCreated"
+            />
+        </div>
+    </div>
+</template>
+<script setup lang="ts">
+import '@wangeditor/editor/dist/css/style.css'; // 引入 css
+
+import { onBeforeUnmount, shallowRef } from 'vue';
+// @ts-ignore
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
+import { API_Type, ClassData, postData, editorConfig } from '@/utils';
+import { useInfoStore } from '@/store';
+import { ElInput, ElMessage } from 'element-plus';
+const mode = 'default';
+
+// 编辑器实例，必须用 shallowRef
+const editorRef = shallowRef();
+
+const toolbarConfig = {};
+
+const Data = reactive({
+    title: '',
+    content: '',
+    class: '',
+    tags: '',
+});
+
+const classList = ref<ClassData[]>([]);
+// 组件销毁时，也及时销毁编辑器
+onBeforeUnmount(() => {
+    const editor = editorRef.value;
+    if (editor == null) return;
+    editor.destroy();
+});
+
+const handleCreated = (editor: any) => {
+    editorRef.value = editor; // 记录 editor 实例，重要！
+};
+const submitArticle = async () => {
+    Data.tags = TagsString.value;
+    await postData(`?type=${API_Type.s_article}`, {
+        username: useInfo.username,
+        token: useInfo.token,
+        data: JSON.stringify(Data),
+    }).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            ElMessage.success({
+                message: '发布文章成功！',
+            });
+            Data.title = '';
+            Data.content = '';
+            Data.class = '';
+        } else {
+            ElMessage.error({
+                message: _data.msg,
+            });
+        }
+    });
+    dynamicTags.value = [];
+};
+const useInfo = useInfoStore();
+
+const inputValue = ref('');
+const dynamicTags = ref<string[]>([]);
+const inputVisible = ref(false);
+const InputRef = ref<InstanceType<typeof ElInput>>();
+const TagsString = computed(() => dynamicTags.value.join('|') ?? []);
+
+const handleClose = (tag: string) => {
+    if (tag.length > 0) dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1);
+};
+
+const showInput = () => {
+    inputVisible.value = true;
+    nextTick(() => {
+        InputRef.value!.input!.focus();
+    });
+};
+
+const handleInputConfirm = () => {
+    if (inputValue.value) {
+        dynamicTags.value.push(inputValue.value);
+    }
+    inputVisible.value = false;
+    inputValue.value = '';
+};
+
+onMounted(async () => {
+    await postData(`?type=${API_Type.class}`, {}).then((data) => {
+        const _data = data.data;
+        if (_data.status) {
+            classList.value = _data.data as any[];
+        } else {
+            ElMessage.error({
+                message: '数据错误！',
+            });
+        }
+    });
+});
+</script>

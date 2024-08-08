@@ -1,0 +1,5 @@
+// 基本动画时间
+$base-ani: 0.3s;
+body{
+    height: 100vh;
+}

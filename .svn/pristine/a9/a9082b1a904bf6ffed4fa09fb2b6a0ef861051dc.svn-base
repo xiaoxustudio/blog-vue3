@@ -1,0 +1,94 @@
+/*
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-23 12:44:31
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+ */
+
+import emitter from '@/EventBus';
+import { useSelectMenuStore } from '@/store';
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+const routes: RouteRecordRaw[] = [
+    {
+        path: '/',
+        redirect: 'home',
+    },
+    {
+        name: 'home',
+        path: '/home',
+        component: () => import('@/pages/Home/Main.vue'),
+    },
+    {
+        name: 'class',
+        path: '/class',
+        component: () => import('@/pages/Class/Main.vue'),
+    },
+    {
+        name: 'article',
+        path: '/article',
+        component: () => import('@/pages/Article/Main.vue'),
+    },
+    {
+        name: 'search',
+        path: '/search',
+        component: () => import('@/pages/Search/Main.vue'),
+    },
+    {
+        name: 'article_info',
+        path: '/article/:article_class/:article_id',
+        component: () => import('@/pages/ArticleInfo/Main.vue'),
+    },
+    {
+        name: 'edit',
+        path: '/edit',
+        component: () => import('@/components/Edit.vue'),
+    },
+    {
+        name: 'login',
+        path: '/login',
+        component: () => import('@/pages/Login/Main.vue'),
+    },
+    {
+        name: 'register',
+        path: '/register',
+        component: () => import('@/pages/Register/Main.vue'),
+    },
+];
+const router = createRouter({
+    history: createWebHistory(import.meta.env.BASE_URL),
+    routes,
+});
+router.beforeEach((to, _from, next) => {
+    const useSelect = useSelectMenuStore();
+    switch (to.name) {
+        case 'home':
+            useSelect.$patch({
+                select: 0,
+            });
+            break;
+        case 'class':
+            useSelect.$patch({
+                select: 1,
+            });
+            break;
+        case 'article':
+            useSelect.$patch({
+                select: 2,
+            });
+            break;
+        case 'tags':
+            useSelect.$patch({
+                select: 3,
+            });
+            break;
+        case 'search':
+            useSelect.$patch({
+                select: 4,
+            });
+            break;
+    }
+    emitter.emit('updateMenu');
+    next();
+});
+export default router;

@@ -1,0 +1,57 @@
+html
+<template>
+  <div class="search-container">
+    <h2>博客搜索</h2>
+    <input type="text" v-model="searchQuery" class="search-input" placeholder="输入搜索关键词...">
+    <button @click="search" class="search-button">搜索</button>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      searchQuery: ''
+    };
+  },
+  methods: {
+    search() {
+      alert('执行搜索：' + this.searchQuery);
+      // 这里可以编写实际的搜索逻辑，比如发送请求到后端或者处理搜索结果
+    }
+  }
+};
+</script>
+
+<style scoped>
+.search-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 400px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.search-button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
+}
+</style>

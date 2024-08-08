@@ -1,0 +1,58 @@
+<!--
+ * @Author: xuranXYS
+ * @LastEditTime: 2024-06-21 14:33:37
+ * @GitHub: www.github.com/xiaoxustudio
+ * @WebSite: www.xiaoxustudio.top
+ * @Description: By xuranXYS
+-->
+<template>
+    <div class="mb-12">
+        <div class="flex flex-1 gap-2">
+            <el-input v-model="input" style="width: 240px" placeholder="请输入要搜索的分类" />
+            <el-button type="primary">搜索</el-button>
+        </div>
+        <div class="flex w-full flex-wrap gap-5 p-5">
+            <el-card
+                class="cursor-pointer"
+                shadow="hover"
+                style="max-width: 480px; min-width: 300px"
+                :style="{
+                    backgroundColor: `${randomRGBColor(100, 300, 0.1)}`,
+                }"
+                v-for="(item, index) in classList"
+                :key="index"
+            >
+                <template #header>
+                    <div class="card-header">
+                        <span class="block text-right text-xs">ID:{{ item.class_id }}</span>
+                        <div class="title my-2 text-2xl font-bold">
+                            {{ item.class_name }}
+                        </div>
+                    </div>
+                </template>
+                <div class="desc my-2 text-sm text-gray-400">{{ item.class_desc }}</div>
+            </el-card>
+        </div>
+    </div>
+</template>
+<script setup lang="ts">
+import { useInfoStore } from '@/store';
+import { API_Type, postData, randomRGBColor } from '@/utils';
+import { ElMessage } from 'element-plus';
+const useInfo = useInfoStore();
+const input = ref('');
+const classList = ref<any[]>([]);
+await postData(`?type=${API_Type.class}`, {
+    username: useInfo.username,
+    token: useInfo.token,
+}).then((data) => {
+    const _data = data.data;
+    if (_data.status) {
+        classList.value = _data.data as any[];
+    } else {
+        ElMessage.error({
+            message: '数据错误！',
+        });
+    }
+});
+</script>
