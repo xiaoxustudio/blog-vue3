@@ -2,7 +2,7 @@
 
 基于vue3开发的个人博客网站  
 
-技术栈：`vue3（全家桶）、elementUI-plus、tilewindcss、axios、wangeditor/editor（富文本编辑器）`
+技术栈：`vue3（全家桶）、elementUI-plus、tailwindcss、axios、wangeditor/editor（富文本编辑器）`
 
 ![屏幕截图 2024-08-08 222736](https://github.com/user-attachments/assets/d907cd4f-3503-406f-ad66-ecd103d2fef6)
 ![屏幕截图 2024-08-08 222741](https://github.com/user-attachments/assets/c443630a-e7d3-418f-ac57-e7f689f4c163)
